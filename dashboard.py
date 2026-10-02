@@ -7,7 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="Dashboard Ketepatan Waktu Penerbangan AS",
-                   page_icon="✈️", layout="wide")
+                   page_icon="logo.jpg", layout="wide")
 
 # =====================================================================
 # KONSTANTA & TEMA HIJAU
@@ -255,7 +255,7 @@ def halaman_ringkasan(data):
              ("Total Penerbangan", kpi['total_flights'], 0, ""),
              ("Rata-rata Load Factor", kpi['load_factor'], 1, "%")])
 
-    with st.expander("ℹ️ Cara membaca metrik delay"):
+    with st.expander("Cara membaca metrik delay"):
         st.markdown(
             "- **Persentase delay**: porsi penerbangan yang tiba terlambat lebih dari 15 menit "
             "(mengacu pada ambang 15 menit BTS/FAA). Tidak terpengaruh penerbangan yang terlambat ekstrem, "
@@ -294,8 +294,7 @@ def halaman_ringkasan(data):
            "Lihat menu *Penyebab Dominan Delay* untuk faktor di baliknya.")
 
     # ----- Grafik 3: animasi bar per bulan -----
-    st.subheader("🎬 Animasi: Delay Maskapai Bulan ke Bulan")
-    st.caption("Tekan tombol ▶ Play di bawah grafik, atau geser slider bulan.")
+    st.subheader("Delay Maskapai dari Bulan ke Bulan")
     anim = urutkan_bulan(ringkas(data, ['BULAN', 'maskapai']))
     anim['BULAN'] = anim['BULAN'].astype(str)
     fig3 = px.bar(anim, x=kolom, y='maskapai', orientation='h', color=kolom,
@@ -395,8 +394,7 @@ def halaman_tersibuk(data):
            f"**{sepi['BULAN']}** ({sepi['total_flights']:,.0f}). Bulan tersibuk "
            f"{(ramai['total_flights'] / sepi['total_flights'] - 1) * 100:.1f}% lebih ramai daripada bulan tersepi.")
 
-    st.subheader("🎬 Animasi: Kepadatan Penerbangan per Bulan")
-    st.caption("Tekan ▶ Play untuk melihat titik padat berpindah dari bulan ke bulan.")
+    st.subheader("Kepadatan Penerbangan per Bulan")
     peta = urutkan_bulan(data.groupby(['BULAN', 'ORIGIN', 'origin_lat', 'origin_lon'])['total_flights']
                          .sum().reset_index())
     peta['BULAN'] = peta['BULAN'].astype(str)
@@ -489,7 +487,7 @@ def halaman_rute(data):
 
     # ----- Peringkat maskapai -----
     ket = "sepanjang tahun" if bulan_pilih == "Semua bulan" else f"bulan {bulan_pilih}"
-    st.subheader(f"🏆 Peringkat Maskapai: {asal} → {tujuan} ({ket})")
+    st.subheader(f"Peringkat Maskapai: {asal} → {tujuan} ({ket})")
     st.caption(f"Diurutkan dari persentase delay terendah. Maskapai dengan kurang dari {MIN_PENERBANGAN} "
                "penerbangan ditampilkan di bawah tanpa peringkat karena angkanya belum stabil. "
                "Angka merupakan gabungan tahun yang dipilih pada filter.")
@@ -546,7 +544,7 @@ def halaman_rute(data):
             narasi(teks)
 
     # ----- Peta jaringan rute -----
-    st.subheader("🗺️ Peta Jaringan Rute")
+    st.subheader("Peta Jaringan Rute")
     peta_jaringan(data, asal, tujuan)
 
     # ----- Per bulan untuk rute ini -----
@@ -579,7 +577,7 @@ def halaman_rute(data):
 # =====================================================================
 df = load_data()
 
-st.sidebar.title("📊 Menu Dashboard")
+st.sidebar.title("Menu Dashboard")
 menu = st.sidebar.radio("Pilih Analisis:", ["Ringkasan Delay", "Penyebab Dominan Delay",
                                             "Bandara & Bulan Tersibuk", "Cek Rute (A ke B)"])
 st.sidebar.markdown("---")
