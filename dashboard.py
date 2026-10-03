@@ -9,8 +9,16 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Dashboard Ketepatan Waktu Penerbangan AS",
                    page_icon="logo.png", layout="wide")
 
+# Deteksi tema aktif Streamlit (dark/light) langsung dari server-side,
+# supaya CSS & warna chart otomatis menyesuaikan tanpa menebak-nebak selector.
+try:
+    TEMA = st.context.theme.type  # "light" atau "dark"
+except Exception:
+    TEMA = "light"
+GELAP = TEMA == "dark"
+
 # =====================================================================
-# KONSTANTA & TEMA HIJAU
+# KONSTANTA & SISTEM WARNA SEMANTIK
 # =====================================================================
 FILE_DATA = "Data_Dashboard_Final.parquet"
 FILE_KOORDINAT = "airports_coords.csv"
@@ -20,9 +28,16 @@ MIN_PENERBANGAN = 30
 
 HIJAU_TUA, HIJAU, HIJAU_MUDA = "#0B5D3B", "#1B8A5A", "#74C69D"
 PALET = [HIJAU_TUA, HIJAU_MUDA, HIJAU, "#B7E4C7", "#40916C", "#95D5B2", "#2D6A4F", "#D8F3DC"]
-px.defaults.template = "plotly_white"
+
+# Delay = makin tinggi makin parah -> skala "bahaya" krem ke merah tegas.
+SKALA_DELAY = ["#FFF7ED", "#FFD8A8", "#FF9E57", "#E8552A", "#A3240C"]
+# Volume/kepadatan = makin tinggi makin ramai -> skala amber (beda kesan dari "bahaya").
+SKALA_VOLUME = ["#FFFBEA", "#FFE49A", "#FFBD5E", "#F2920B", "#B86B00"]
+MERAH_BAHAYA, HIJAU_AMAN = "#E8552A", "#1B8A5A"
+
+px.defaults.template = "plotly_dark" if GELAP else "plotly_white"
 px.defaults.color_discrete_sequence = PALET
-px.defaults.color_continuous_scale = "Greens"
+px.defaults.color_continuous_scale = SKALA_VOLUME
 
 NAMA_MASKAPAI = {
     '9E': 'Endeavor Air', 'AA': 'American Airlines', 'AS': 'Alaska Airlines',
@@ -56,31 +71,52 @@ except Exception:
     _versi = (0, 0)
 LEBAR_PENUH = {"width": "stretch"} if _versi >= (1, 50) else {"use_container_width": True}
 
-CSS_HALAMAN = """
-.hero{background:linear-gradient(120deg,#0B5D3B,#1B8A5A 60%,#52B788);color:#fff;padding:26px 32px;
- border-radius:16px;position:relative;overflow:hidden;margin-bottom:18px;animation:fade .8s ease}
-.hero h1{margin:0;font-size:2rem;color:#fff;padding:0}
-.hero p{margin:6px 0 0;opacity:.92;color:#fff}
-.pesawat{position:absolute;top:16px;font-size:34px;animation:terbang 10s linear infinite;opacity:.85}
-@keyframes terbang{0%{left:-60px;transform:translateY(0)}50%{transform:translateY(14px)}100%{left:105%;transform:translateY(0)}}
-@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.insight{background:#E4F4EA;border-left:6px solid #1B8A5A;border-radius:10px;padding:14px 18px;margin:8px 0 22px;
- color:#12372A;animation:fade .8s ease;line-height:1.55}
-[data-testid="stPlotlyChart"],[data-testid="stDataFrame"]{animation:fade .8s ease}
-h2,h3{color:#0B5D3B}
+# Warna yang beda antara tema terang & gelap (sisanya -- sidebar duotone, hero -- sengaja dibuat sama di kedua tema sebagai identitas brand)
+_BG = "#0A100C" if GELAP else "#FAF9F5"
+_BLOB = "rgba(116,198,157,.16)" if GELAP else "rgba(116,198,157,.12)"
+_PANEL = "#121B16" if GELAP else "#FFFFFF"
+_PANEL_BORDER = "rgba(116,198,157,.18)" if GELAP else "rgba(11,93,59,.08)"
+_TEKS_JUDUL = "#DFF4E8" if GELAP else "#0B5D3B"
+_TEKS_LABEL = "#9FC9AF" if GELAP else "#3D6B57"
+_TEKS_NILAI = "#6FE3A3" if GELAP else "#0B5D3B"
+_INSIGHT_BG = "#12271C" if GELAP else "#E4F4EA"
+_INSIGHT_TEKS = "#DDF2E4" if GELAP else "#12372A"
 
-/* ====== KONTEN UTAMA: ivory hangat + aksen gradient sangat tipis (kontras teks tetap aman) ====== */
-[data-testid="stAppViewContainer"]{
-  background-color:#FAF9F5;
+CSS_HALAMAN = f"""
+.hero{{background:linear-gradient(120deg,#0B5D3B,#1B8A5A 60%,#52B788);color:#fff;padding:26px 32px;
+ border-radius:16px;position:relative;overflow:hidden;margin-bottom:18px;animation:fade .5s ease both}}
+.hero h1{{margin:0;font-size:2rem;color:#fff;padding:0}}
+.hero p{{margin:6px 0 0;opacity:.92;color:#fff}}
+.pesawat{{position:absolute;top:16px;font-size:34px;animation:terbang 10s linear infinite;opacity:.85}}
+@keyframes terbang{{0%{{left:-60px;transform:translateY(0)}}50%{{transform:translateY(14px)}}100%{{left:105%;transform:translateY(0)}}}}
+@keyframes fade{{from{{opacity:0;transform:translateY(8px)}}to{{opacity:1;transform:none}}}}
+.insight{{background:{_INSIGHT_BG};border-left:6px solid #1B8A5A;border-radius:10px;padding:14px 18px;margin:8px 0 22px;
+ color:{_INSIGHT_TEKS};animation:fade .5s ease both;line-height:1.55}}
+[data-testid="stPlotlyChart"],[data-testid="stDataFrame"]{{animation:fade .5s ease both}}
+h2,h3{{color:{_TEKS_JUDUL}}}
+
+/* ====== Legenda skala warna (strip gradient kecil) ====== */
+.legenda{{display:flex;align-items:center;gap:10px;margin:4px 0 18px;font-size:13px;color:{_TEKS_LABEL}}}
+.legenda .strip{{flex:0 0 140px;height:10px;border-radius:6px}}
+
+/* ====== Badge sinyal delay (merah=rawan, hijau=aman) ====== */
+.badge-bahaya{{background:rgba(232,85,42,.15);color:#E8552A;border:1px solid rgba(232,85,42,.35);
+ border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap}}
+.badge-aman{{background:rgba(27,138,90,.15);color:{'#6FE3A3' if GELAP else '#1B8A5A'};border:1px solid rgba(27,138,90,.35);
+ border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap}}
+
+/* ====== KONTEN UTAMA: aksen gradient tipis cuma di pojok, area baca tetap bersih ====== */
+[data-testid="stAppViewContainer"]{{
+  background-color:{_BG};
   background-image:
-    radial-gradient(circle at 10% 8%, rgba(116,198,157,.12) 0%, transparent 32%),
-    radial-gradient(circle at 92% 6%, rgba(183,228,199,.14) 0%, transparent 34%),
-    radial-gradient(circle at 88% 92%, rgba(27,138,90,.08) 0%, transparent 32%),
-    radial-gradient(circle at 6% 92%, rgba(149,213,178,.10) 0%, transparent 34%);
-  border-radius:20px;margin:10px 12px 10px 0}
+    radial-gradient(circle at 10% 8%, {_BLOB} 0%, transparent 30%),
+    radial-gradient(circle at 92% 6%, {_BLOB} 0%, transparent 32%),
+    radial-gradient(circle at 88% 92%, {_BLOB} 0%, transparent 30%),
+    radial-gradient(circle at 6% 92%, {_BLOB} 0%, transparent 32%);
+  border-radius:20px;margin:10px 12px 10px 0}}
 
-/* ====== SIDEBAR: panel gelap duotone + tekstur noise halus ====== */
-[data-testid="stSidebar"]{
+/* ====== SIDEBAR: panel gelap duotone + tekstur noise halus (sama di kedua tema, identitas brand) ====== */
+[data-testid="stSidebar"]{{
   background:
     repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0px, rgba(255,255,255,.035) 1px, transparent 1px, transparent 3px),
     repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0px, rgba(255,255,255,.035) 1px, transparent 1px, transparent 3px),
@@ -88,24 +124,22 @@ h2,h3{color:#0B5D3B}
     radial-gradient(circle at 85% 92%, rgba(45,106,79,.30) 0%, transparent 55%),
     linear-gradient(165deg, #0B5D3B 0%, #073623 45%, #041912 100%);
   border-right:1px solid rgba(116,198,157,.18);
-  box-shadow:8px 0 30px rgba(0,0,0,.35)}
-
-/* Teks sidebar diputihkan supaya tetap terbaca di atas panel gelap */
-[data-testid="stSidebar"] *{color:#E8F6EE !important}
-[data-testid="stSidebar"] hr{border-color:rgba(232,246,238,.22) !important}
-[data-testid="stSidebar"] svg{fill:#E8F6EE !important}
+  box-shadow:8px 0 30px rgba(0,0,0,.35)}}
+[data-testid="stSidebar"] *{{color:#E8F6EE !important}}
+[data-testid="stSidebar"] hr{{border-color:rgba(232,246,238,.22) !important}}
+[data-testid="stSidebar"] svg{{fill:#E8F6EE !important}}
 """
 
-CSS_KARTU = """
-body{margin:0;font-family:"Source Sans Pro",Arial,sans-serif}
-.row{display:flex;gap:14px}
-.k{flex:1;background:#fff;border-left:6px solid #1B8A5A;border-radius:12px;padding:14px 16px;
- box-shadow:0 2px 8px rgba(11,93,59,.15);transition:transform .25s,box-shadow .25s;
- animation:naik .7s ease both}
-.k:hover{transform:translateY(-4px);box-shadow:0 8px 18px rgba(11,93,59,.28)}
-.t{font-size:13px;color:#3D6B57}
-.v{font-size:28px;font-weight:700;color:#0B5D3B;margin-top:4px}
-@keyframes naik{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+CSS_KARTU = f"""
+body{{margin:0;font-family:"Source Sans Pro",Arial,sans-serif}}
+.row{{display:flex;gap:14px}}
+.k{{flex:1;background:{_PANEL};border-left:6px solid #1B8A5A;border-radius:12px;padding:14px 16px;
+ box-shadow:0 2px 8px rgba(11,93,59,.15);border:1px solid {_PANEL_BORDER};border-left:6px solid #1B8A5A;
+ transition:transform .22s,box-shadow .22s;animation:naik .5s ease both}}
+.k:hover{{transform:translateY(-6px);box-shadow:0 12px 26px rgba(27,138,90,.30)}}
+.t{{font-size:13px;color:{_TEKS_LABEL}}}
+.v{{font-size:28px;font-weight:700;color:{_TEKS_NILAI};margin-top:4px}}
+@keyframes naik{{from{{opacity:0;transform:translateY(14px)}}to{{opacity:1;transform:none}}}}
 """
 
 JS_HITUNG = """
@@ -176,8 +210,23 @@ def narasi(teks):
 
 def tampil(fig):
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                      font=dict(color="#12372A"), margin=dict(l=10, r=10, t=50, b=10))
+                      font=dict(color="#DFF4E8" if GELAP else "#12372A"),
+                      margin=dict(l=10, r=10, t=50, b=10))
     st.plotly_chart(fig, **LEBAR_PENUH)
+
+
+def legenda_warna(skala, label_rendah="Rendah", label_tinggi="Tinggi"):
+    """Strip gradient kecil supaya pembaca langsung paham arti skala warna sebuah grafik."""
+    gradasi = ", ".join(skala)
+    st.markdown(
+        f"<div class='legenda'><span>{label_rendah}</span>"
+        f"<span class='strip' style='background:linear-gradient(90deg,{gradasi})'></span>"
+        f"<span>{label_tinggi}</span></div>", unsafe_allow_html=True)
+
+
+def badge_sinyal(rawan):
+    """Badge kecil merah (rawan delay) / hijau (tepat waktu), pelengkap warna supaya sinyalnya ganda (teks + warna)."""
+    return "⚠ Rawan delay" if rawan else "✓ Tepat waktu"
 
 
 def atur_animasi(fig, durasi=900):
@@ -295,8 +344,10 @@ def halaman_ringkasan(data):
 
     # ----- Grafik 1: per maskapai -----
     st.subheader("Delay per Maskapai")
+    legenda_warna(SKALA_DELAY, "Aman", "Rawan delay")
     per_maskapai = ringkas(data, 'maskapai').sort_values(kolom, ascending=True)
     fig1 = px.bar(per_maskapai, x=kolom, y='maskapai', orientation='h', color=kolom,
+                  color_continuous_scale=SKALA_DELAY,
                   hover_data={'total_flights': ':,.0f', 'delay_rate': ':.1f', 'avg_delay': ':.1f'},
                   labels={kolom: label, 'maskapai': 'Maskapai', 'total_flights': 'Total penerbangan',
                           'delay_rate': 'Delay (%)', 'avg_delay': 'Rata-rata delay (mnt)'})
@@ -311,7 +362,9 @@ def halaman_ringkasan(data):
     st.subheader("Tren Delay per Bulan")
     per_bulan = urutkan_bulan(ringkas(data, 'BULAN'))
     fig2 = px.line(per_bulan, x='BULAN', y=kolom, markers=True,
+                   color_discrete_sequence=[MERAH_BAHAYA],
                    category_orders={'BULAN': URUTAN_BULAN}, labels={kolom: label, 'BULAN': 'Bulan'})
+    fig2.update_traces(fill='tozeroy', fillcolor='rgba(232,85,42,.10)')
     tampil(fig2)
     tinggi, rendah = per_bulan.loc[per_bulan[kolom].idxmax()], per_bulan.loc[per_bulan[kolom].idxmin()]
     narasi(f"Delay paling parah terjadi pada bulan **{tinggi['BULAN']}** ({fmt_metrik(kolom, tinggi[kolom])}) "
@@ -324,6 +377,7 @@ def halaman_ringkasan(data):
     anim = urutkan_bulan(ringkas(data, ['BULAN', 'maskapai']))
     anim['BULAN'] = anim['BULAN'].astype(str)
     fig3 = px.bar(anim, x=kolom, y='maskapai', orientation='h', color=kolom,
+                  color_continuous_scale=SKALA_DELAY,
                   animation_frame='BULAN', range_x=[0, anim[kolom].max() * 1.15],
                   range_color=[0, anim[kolom].max()],
                   category_orders={'BULAN': bulan_tersedia(data),
@@ -399,6 +453,7 @@ def halaman_tersibuk(data):
     total_semua = data['total_flights'].sum()
 
     st.subheader("Top 10 Bandara Tersibuk")
+    legenda_warna(SKALA_VOLUME, "Sepi", "Ramai")
     bandara = top_bandara(data)
     fig1 = px.bar(bandara.sort_values('total_flights'), x='total_flights', y='bandara', orientation='h',
                   color='total_flights', labels={'total_flights': 'Total Penerbangan', 'bandara': 'Bandara'})
@@ -424,7 +479,7 @@ def halaman_tersibuk(data):
     peta = urutkan_bulan(data.groupby(['BULAN', 'ORIGIN', 'origin_lat', 'origin_lon'])['total_flights']
                          .sum().reset_index())
     peta['BULAN'] = peta['BULAN'].astype(str)
-    skala = [[0, "rgba(116,198,157,0)"], [0.3, HIJAU_MUDA], [1, HIJAU_TUA]]
+    skala = [[0, "rgba(255,189,94,0)"], [0.35, SKALA_VOLUME[2]], [1, SKALA_VOLUME[4]]]
     fig_peta = px.density_map(peta, lat='origin_lat', lon='origin_lon', z='total_flights', radius=18,
                               animation_frame='BULAN', category_orders={'BULAN': bulan_tersedia(data)},
                               center=dict(lat=39, lon=-98), zoom=3, map_style="open-street-map",
@@ -528,15 +583,52 @@ def halaman_rute(data):
                 .head(10).reset_index(drop=True))
         n_cukup = int(rank['cukup'].sum())
 
-        st.dataframe(pd.DataFrame({
+        idx_cukup = rank.index[rank['cukup']].tolist()
+        sinyal = [""] * len(rank)
+        if idx_cukup:
+            sinyal[idx_cukup[0]] = badge_sinyal(False)
+            if len(idx_cukup) > 1:
+                sinyal[idx_cukup[-1]] = badge_sinyal(True)
+
+        tabel_peringkat = pd.DataFrame({
             'Peringkat': [str(i + 1) if ok else "–" for i, ok in enumerate(rank['cukup'])],
             'Maskapai': rank['maskapai'],
-            'Total Penerbangan': rank['total_flights'].map('{:,.0f}'.format),
-            '% Delay (>15 mnt)': rank['delay_rate'].map('{:.1f}%'.format),
-            'Rata-rata Delay (mnt)': rank['avg_delay'].map('{:.1f}'.format),
-            'Load Factor': rank['load_factor'].map(lambda v: f"{v:.1f}%" if pd.notna(v) else "n/a"),
+            'Total Penerbangan': rank['total_flights'],
+            '% Delay (>15 mnt)': rank['delay_rate'],
+            'Rata-rata Delay (mnt)': rank['avg_delay'],
+            'Load Factor': rank['load_factor'],
+            'Sinyal': sinyal,
             'Catatan': ["" if ok else "Data terbatas" for ok in rank['cukup']],
-        }), hide_index=True)
+        })
+
+        def _warna_delay(nilai):
+            """Heatmap manual (krem->merah) tanpa dependensi matplotlib."""
+            if pd.isna(nilai):
+                return ""
+            maks = rank['delay_rate'].max() or 1
+            t = max(0, min(1, nilai / maks))
+            n = len(SKALA_DELAY) - 1
+            pos = t * n
+            i = min(int(pos), n - 1)
+            frac = pos - i
+            c1 = tuple(int(SKALA_DELAY[i][j:j + 2], 16) for j in (1, 3, 5))
+            c2 = tuple(int(SKALA_DELAY[i + 1][j:j + 2], 16) for j in (1, 3, 5))
+            rgb = tuple(round(c1[k] + (c2[k] - c1[k]) * frac) for k in range(3))
+            teks = "#FFFFFF" if t > 0.55 else "#3D2B1F"
+            return f"background-color:rgb{rgb};color:{teks}"
+
+        styler = tabel_peringkat.style.hide(axis="index").format({
+            'Total Penerbangan': '{:,.0f}'.format,
+            '% Delay (>15 mnt)': '{:.1f}%'.format,
+            'Rata-rata Delay (mnt)': '{:.1f}'.format,
+            'Load Factor': lambda v: f"{v:.1f}%" if pd.notna(v) else "n/a",
+        })
+        try:
+            styler = styler.map(_warna_delay, subset=['% Delay (>15 mnt)'])
+        except AttributeError:
+            styler = styler.applymap(_warna_delay, subset=['% Delay (>15 mnt)'])
+        st.dataframe(styler, hide_index=True)
+        st.caption("Warna kolom % Delay: krem = aman, merah tegas = rawan delay (relatif terhadap maskapai lain di rute ini).")
 
         rp = rank.iloc[::-1].copy()
         rp['Status'] = rp['cukup'].map({True: 'Data memadai', False: f'Data terbatas (<{MIN_PENERBANGAN})'})
@@ -552,6 +644,12 @@ def halaman_rute(data):
         else:
             layak = rank[rank['cukup']]
             b = layak.iloc[0]
+            if n_cukup >= 2:
+                w_badge = layak.iloc[-1]
+                st.markdown(
+                    f"<span class='badge-aman'>✓ {html.escape(b['maskapai'])}</span>&nbsp;&nbsp;"
+                    f"<span class='badge-bahaya'>⚠ {html.escape(w_badge['maskapai'])}</span>",
+                    unsafe_allow_html=True)
             teks = (f"Untuk rute {asal} → {tujuan} ({ket}), maskapai paling tepat waktu adalah **{b['maskapai']}** "
                     f"({b['delay_rate']:.1f}% penerbangan delay dari {b['total_flights']:,.0f} penerbangan).")
             if n_cukup >= 2:
