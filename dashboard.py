@@ -898,12 +898,10 @@ def halaman_tentang():
 - Sekitar 0,2% baris tidak memiliki koordinat bandara yang cocok di OpenFlights, sehingga tidak muncul di peta.
 
 ### Kelompok 7
-*
-Nadia Maretta Rafa              24051430038
-Nabila Dwitya Agustin           24051430037
-Carlene Jean Suzzanna Gaitian   24051430093
-Muhamad Yunus                   24051430029
-*
+* Nadia Maretta Rafa              (24051430038)
+* Nabila Dwitya Agustin           (24051430037)
+* Carlene Jean Suzzanna Gaitian   (24051430093)
+* Muhamad Yunus                   (24051430029)
 """)
 
 # =====================================================================
