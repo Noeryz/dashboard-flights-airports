@@ -69,14 +69,14 @@ CSS_HALAMAN = """
 [data-testid="stPlotlyChart"],[data-testid="stDataFrame"]{animation:fade .8s ease}
 h2,h3{color:#0B5D3B}
 
-/* ====== KONTEN UTAMA: mesh gradient lembut, ditempel langsung ke container (tidak bergantung deteksi tema) ====== */
+/* ====== KONTEN UTAMA: ivory hangat + aksen gradient sangat tipis (kontras teks tetap aman) ====== */
 [data-testid="stAppViewContainer"]{
-  background-color:#FBFEFC;
+  background-color:#FAF9F5;
   background-image:
-    radial-gradient(circle at 15% 12%, rgba(116,198,157,.30) 0%, transparent 40%),
-    radial-gradient(circle at 85% 8%, rgba(183,228,199,.35) 0%, transparent 42%),
-    radial-gradient(circle at 82% 88%, rgba(27,138,90,.20) 0%, transparent 42%),
-    radial-gradient(circle at 10% 88%, rgba(149,213,178,.28) 0%, transparent 46%);
+    radial-gradient(circle at 10% 8%, rgba(116,198,157,.12) 0%, transparent 32%),
+    radial-gradient(circle at 92% 6%, rgba(183,228,199,.14) 0%, transparent 34%),
+    radial-gradient(circle at 88% 92%, rgba(27,138,90,.08) 0%, transparent 32%),
+    radial-gradient(circle at 6% 92%, rgba(149,213,178,.10) 0%, transparent 34%);
   border-radius:20px;margin:10px 12px 10px 0}
 
 /* ====== SIDEBAR: panel gelap duotone + tekstur noise halus ====== */
