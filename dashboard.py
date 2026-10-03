@@ -69,44 +69,31 @@ CSS_HALAMAN = """
 [data-testid="stPlotlyChart"],[data-testid="stDataFrame"]{animation:fade .8s ease}
 h2,h3{color:#0B5D3B}
 
-/* ====== MESH GRADIENT BACKGROUND (gradient langsung, tanpa filter/fixed-pseudo) ====== */
-.stApp[data-theme="dark"]{
-  background-color:#0A120E;
+/* ====== KONTEN UTAMA: mesh gradient lembut, ditempel langsung ke container (tidak bergantung deteksi tema) ====== */
+[data-testid="stAppViewContainer"]{
+  background-color:#FBFEFC;
   background-image:
-    radial-gradient(circle at 12% 18%, rgba(27,138,90,.30) 0%, transparent 38%),
-    radial-gradient(circle at 88% 12%, rgba(116,198,157,.22) 0%, transparent 42%),
-    radial-gradient(circle at 78% 85%, rgba(11,93,59,.30) 0%, transparent 42%),
-    radial-gradient(circle at 15% 88%, rgba(45,106,79,.22) 0%, transparent 44%);
-  background-attachment:fixed}
+    radial-gradient(circle at 15% 12%, rgba(116,198,157,.30) 0%, transparent 40%),
+    radial-gradient(circle at 85% 8%, rgba(183,228,199,.35) 0%, transparent 42%),
+    radial-gradient(circle at 82% 88%, rgba(27,138,90,.20) 0%, transparent 42%),
+    radial-gradient(circle at 10% 88%, rgba(149,213,178,.28) 0%, transparent 46%);
+  border-radius:20px;margin:10px 12px 10px 0}
 
-.stApp[data-theme="light"]{
-  background-color:#F3FAF6;
-  background-image:
-    radial-gradient(circle at 12% 18%, rgba(116,198,157,.35) 0%, transparent 38%),
-    radial-gradient(circle at 88% 12%, rgba(183,228,199,.45) 0%, transparent 42%),
-    radial-gradient(circle at 78% 85%, rgba(27,138,90,.20) 0%, transparent 42%),
-    radial-gradient(circle at 15% 88%, rgba(149,213,178,.30) 0%, transparent 44%);
-  background-attachment:fixed}
-
-/* ====== KONTEN UTAMA: panel semi-transparan ringan (TANPA backdrop-filter, supaya peta Plotly/WebGL tidak blank) ====== */
-[data-testid="stAppViewContainer"]{border-radius:20px;margin:10px 12px 10px 0}
-.stApp[data-theme="dark"] [data-testid="stAppViewContainer"]{
-  background:rgba(10,20,15,.45);border:1px solid rgba(116,198,157,.12);
-  box-shadow:0 8px 32px rgba(0,0,0,.35)}
-.stApp[data-theme="light"] [data-testid="stAppViewContainer"]{
-  background:rgba(255,255,255,.65);border:1px solid rgba(11,93,59,.08);
-  box-shadow:0 8px 32px rgba(11,93,59,.08)}
-
-/* ====== SIDEBAR: panel kaca buram (blur ringan, aman karena area kecil tanpa WebGL) ====== */
+/* ====== SIDEBAR: panel gelap duotone + tekstur noise halus ====== */
 [data-testid="stSidebar"]{
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  border-right:1px solid}
-.stApp[data-theme="dark"] [data-testid="stSidebar"]{
-  background:rgba(6,14,10,.55);border-right-color:rgba(116,198,157,.15);
+  background:
+    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0px, rgba(255,255,255,.035) 1px, transparent 1px, transparent 3px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.035) 0px, rgba(255,255,255,.035) 1px, transparent 1px, transparent 3px),
+    radial-gradient(circle at 20% 8%, rgba(116,198,157,.22) 0%, transparent 50%),
+    radial-gradient(circle at 85% 92%, rgba(45,106,79,.30) 0%, transparent 55%),
+    linear-gradient(165deg, #0B5D3B 0%, #073623 45%, #041912 100%);
+  border-right:1px solid rgba(116,198,157,.18);
   box-shadow:8px 0 30px rgba(0,0,0,.35)}
-.stApp[data-theme="light"] [data-testid="stSidebar"]{
-  background:rgba(233,246,238,.65);border-right-color:rgba(11,93,59,.12);
-  box-shadow:8px 0 30px rgba(11,93,59,.08)}
+
+/* Teks sidebar diputihkan supaya tetap terbaca di atas panel gelap */
+[data-testid="stSidebar"] *{color:#E8F6EE !important}
+[data-testid="stSidebar"] hr{border-color:rgba(232,246,238,.22) !important}
+[data-testid="stSidebar"] svg{fill:#E8F6EE !important}
 """
 
 CSS_KARTU = """
